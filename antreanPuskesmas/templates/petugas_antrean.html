@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Daftar Antrean</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <!-- Logo -->
+        <div class="text-center mb-4">
+            <h3 class="mb-0">SIANTREON</h3>
+        </div>
+
+        <!-- profil -->
+        <div class="profile">
+            <img src="/static/images/profil1.png" alt="avatar">
+            <p class="mb-0 fw-bold">Petugas123</p>
+            <small>petugas123@gmail.com</small>
+        </div>
+
+        <a href="/petugas/dashboard" class="nav-link {{ if eq .Page "dashboard" }}active{{ end }}">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </a>
+
+        <a href="/petugas/antrean" class="nav-link {{ if eq .Page "antrean" }}active{{ end }}">
+            <i class="bi bi-list-ul me-2"></i> Daftar Antrean
+        </a>
+
+        <a href="/petugas/riwayat" class="nav-link {{ if eq .Page "riwayat" }}active{{ end }}">
+            <i class="bi bi-archive me-2"></i> Riwayat Pelayanan
+        </a>
+        
+        <div class="logout-button">
+            <a href="/petugas/logout" class="btn btn-light text-danger fw-bold w-100">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm" id="toggleSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+            <div>
+                <i class="bi bi-bell-fill me-3"></i>
+                <i class="bi bi-gear-fill me-3"></i>
+                <i class="bi bi-person-circle"></i>
+            </div>
+        </div>
+
+        <h1 class="p-4 text-white"><i class="bi bi-list-ul me-2"></i>Daftar Antrean</h1>
+
+        <!-- Kontainer dengan latar belakang -->
+        <div class="p-4 flex-grow-1" id="contentWrapper">
+            <div class="row text-center mt-2">
+                <h2 class="mb-2">Daftar Antrean Hari Ini</h2>
+
+                <!-- Pencarian -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <div class="input-group mb-3" style="max-width: 300px;">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Cari nama pasien...">
+                    </div>
+                </div>
+
+                <!-- Tombol Tambah dan Simpan -->
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambah">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Pasien
+                    </button>
+                    <form method="POST" action="/petugas/riwayat/simpan">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-save me-1"></i> Simpan ke Riwayat
+                        </button>
+                    </form>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>No</th>
+                                <th>Nomor</th>
+                                <th>Nama</th>
+                                <th>Layanan</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ range $i, $a := .Antrean }}
+                            <tr>
+                                <td>{{ add $i 1 }}</td>
+                                <td>{{ $a.NomorAntrean }}</td>
+                                <td class="nama-pasien">{{ $a.NamaLengkap }}</td>
+                                <td>{{ $a.Layanan }}</td>
+                                <td>{{ $a.Status }}</td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalEdit"
+                                        data-id="{{ $a.ID }}" data-nama="{{ $a.NamaLengkap }}" data-layanan="{{ $a.Layanan }}"
+                                        data-nik="{{ $a.NIK }}" data-nohp="{{ $a.NoHP }}" data-tanggal="{{ $a.TanggalKunjungan.Format "2006-01-02" }}">
+                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                    </button>
+
+                                    <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalHapus"
+                                        data-id="{{ $a.ID }}" data-nama="{{ $a.NamaLengkap }}">
+                                        <i class="bi bi-trash me-1"></i> Hapus
+                                    </button>
+
+                                    {{ if eq $a.Status "menunggu" }}
+                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#modalPanggil"
+                                        data-id="{{ $a.ID }}" data-nama="{{ $a.NamaLengkap }}">
+                                        <i class="bi bi-megaphone me-1"></i> Panggil
+                                    </button>
+                                    {{ end }}
+
+                                    {{ if eq $a.Status "dipanggil" }}
+                                    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalSelesai"
+                                        data-id="{{ $a.ID }}" data-nama="{{ $a.NamaLengkap }}">
+                                        <i class="bi bi-check2-circle me-1"></i> Selesai
+                                    </button>
+                                    {{ end }}
+                                </td>
+                            </tr>
+                            {{ else }}
+                            <tr><td colspan="6" class="text-center">Tidak ada antrean hari ini.</td></tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            © Copyright 2025 - Puskesmas Ketanggungan. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Modal Tambah Pasien -->
+    <div class="modal fade" id="modalTambah" tabindex="-1" aria-labelledby="modalTambahLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" action="/petugas/tambah" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Pasien Manual</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>NIK</label>
+                        <input type="text" name="nik" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>No HP</label>
+                        <input type="text" name="no_hp" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Layanan</label>
+                        <select name="layanan" class="form-control" required>
+                            <option value="">--pilih layanan--</option>
+                                <option value="Imunisasi">Imunisasi</option>
+                                <option value="Gigi dan Mulut">Kesehatan Gigi dan Mulut</option>
+                                <option value="Kandungan">Pemeriksaan Kandungan</option>
+                                <option value="Umum">Pemeriksaan Umum</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Tanggal Kunjungan</label>
+                        <input type="date" name="tanggal" class="form-control" value="{{ .Now }}" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit -->
+    <div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" id="formEdit" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Antrean</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-id">
+
+                    <div class="mb-3">
+                        <label>Nama Lengkap</label>
+                        <input type="text" id="edit-nama" name="nama" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>NIK</label>
+                        <input type="text" id="edit-nik" name="nik" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>No HP</label>
+                        <input type="text" id="edit-nohp" name="no_hp" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Layanan</label>
+                        <select id="edit-layanan" name="layanan" class="form-control" required>
+                            <option value="Imunisasi">Imunisasi</option>
+                            <option value="Gigi dan Mulut">Kesehatan Gigi dan Mulut</option>
+                            <option value="Kandungan">Pemeriksaan Kandungan</option>
+                            <option value="Umum">Pemeriksaan Umum</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Tanggal Kunjungan</label>
+                        <input type="date" id="edit-tanggal" name="tanggal" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Hapus -->
+    <div class="modal fade" id="modalHapus" tabindex="-1" aria-labelledby="modalHapusLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" id="formHapus" class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menghapus antrean untuk <strong><span id="hapus-nama"></span></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Panggil -->
+    <div class="modal fade" id="modalPanggil" tabindex="-1" aria-labelledby="modalPanggilLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" id="formPanggil" class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Konfirmasi Panggilan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda ingin memanggil <strong><span id="panggil-nama"></span></strong> sekarang?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-info">Ya, Panggil</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Selesai -->
+    <div class="modal fade" id="modalSelesai" tabindex="-1" aria-labelledby="modalSelesaiLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="POST" id="formSelesai" class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Konfirmasi Selesai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menandai <strong><span id="selesai-nama"></span></strong> sebagai <strong>SELESAI</strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Ya, Tandai Selesai</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/antrean_petugas.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/search_nama.js"></script>
+
+</body>
+</html>

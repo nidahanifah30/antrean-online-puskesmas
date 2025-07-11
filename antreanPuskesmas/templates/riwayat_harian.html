@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Riwayat Pelayanan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <!-- Logo -->
+        <div class="text-center mb-4">
+            <h3 class="mb-0">SIANTREON</h3>
+        </div>
+
+        <!-- profil -->
+        <div class="profile">
+            <img src="/static/images/profil1.png" alt="avatar">
+            <p class="mb-0 fw-bold">Petugas123</p>
+            <small>petugas123@gmail.com</small>
+        </div>
+
+        <a href="/petugas/dashboard" class="nav-link {{ if eq .Page "dashboard" }}active{{ end }}">
+            <i class="bi bi-speedometer2 me-2"></i> Dashboard
+        </a>
+
+        <a href="/petugas/antrean" class="nav-link {{ if eq .Page "antrean" }}active{{ end }}">
+            <i class="bi bi-list-ul me-2"></i> Daftar Antrean
+        </a>
+
+        <a href="/petugas/riwayat" class="nav-link {{ if eq .Page "riwayat" }}active{{ end }}">
+            <i class="bi bi-archive me-2"></i> Riwayat Pelayanan
+        </a>
+        
+        <div class="logout-button">
+            <a href="/petugas/logout" class="btn btn-light text-danger fw-bold w-100">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="topbar">
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm" id="toggleSidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+            <div>
+                <i class="bi bi-bell-fill me-3"></i>
+                <i class="bi bi-gear-fill me-3"></i>
+                <i class="bi bi-person-circle"></i>
+            </div>
+        </div>
+
+        <!-- Kontainer dengan latar belakang -->
+        <div class="p-4 flex-grow-1" id="contentWrapper">
+            <div class="row text-center mt-2">
+                <h2 class="fw-bold">LAPORAN PELAYANAN PASIEN</h2>
+                <h2 class="fw-bold">BULAN {{ bulanNama .Bulan }} {{ .Tahun }}</h2>
+
+                <!-- Pencarian -->
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <div class="input-group mb-3" style="max-width: 300px;">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Cari nama pasien...">
+                    </div>
+                </div>
+
+
+                <!-- Tombol cetak -->
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                    <a class="btn btn-success btn-sm" href="/petugas/riwayat/{{ .Tahun }}/{{ .Bulan }}/cetak">
+                        <i class="bi bi-printer-fill me-1"></i> Cetak
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>No</th>
+                                <th>Tanggal</th>
+                                <th>Nomor Antrean</th>
+                                <th>Nama Pasien</th>
+                                <th>Layanan</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {{ if .Riwayat }}
+                            {{ range $i, $r := .Riwayat }}
+                            <tr>
+                                <td class="text-center">{{ add $i 1 }}</td>
+                                <td class="text-center">{{ $r.Tanggal.Format "02-01-2006" }}</td>
+                                <td class="text-center">{{ $r.NomorAntrean }}</td>
+                                <td class="nama-pasien">{{ $r.NamaPasien }}</td>
+                                <td class="text-center">{{ $r.Layanan }}</td>
+                                <td class="text-center">{{ $r.Status }}</td>
+                            </tr>
+                            {{ end }}
+                        {{ else }}
+                            <tr>
+                                <td colspan="6" class="text-center">Tidak ada data riwayat bulan ini.</td>
+                            </tr>
+                        {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            © Copyright 2025 - Puskesmas Ketanggungan. All rights reserved.
+        </footer>
+    </div>
+
+    <!-- Modal Hapus -->
+    <div class="modal fade" id="modalHapus" tabindex="-1" aria-labelledby="modalHapusLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="GET" id="formHapus" class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalHapusLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Yakin ingin menghapus <strong>riwayat bulan <span id="hapus-bulan"></span>/<span id="hapus-tahun"></span></strong>?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/search_nama.js"></script>
+
+</body>
+</html>
